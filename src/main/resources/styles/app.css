@@ -1,0 +1,138 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f4f1ea;
+}
+
+.app-header {
+    -fx-background-color: #1f6f65;
+    -fx-padding: 16 22 16 22;
+}
+
+.title-label {
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.subtitle-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #d8eee9;
+}
+
+.body-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #40534c;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173d37;
+}
+
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: #ded7cb;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(three-pass-box, rgba(23,61,55,0.10), 10, 0, 0, 3);
+}
+
+.photo {
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(three-pass-box, rgba(23,61,55,0.12), 8, 0, 0, 2);
+}
+
+.stat-number {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f6f65;
+}
+
+.stat-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #52665f;
+}
+
+.primary-button {
+    -fx-background-color: #1f6f65;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+}
+
+.secondary-button {
+    -fx-background-color: #e1d4be;
+    -fx-text-fill: #173d37;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+}
+
+.success-button {
+    -fx-background-color: #5b8f43;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+}
+
+.danger-button {
+    -fx-background-color: #a24d46;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #e9e0d2;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #d8cbb9;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #ded7cb;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #edf4f1;
+}
+
+.text-field, .text-area, .combo-box, .date-picker, .spinner {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.status-bar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ded7cb transparent transparent transparent;
+    -fx-padding: 10 18 10 18;
+}
+
+.status-ok {
+    -fx-text-fill: #1f6f65;
+    -fx-font-weight: bold;
+}
+
+.status-error {
+    -fx-text-fill: #a24d46;
+    -fx-font-weight: bold;
+}
+
+.page-scroll {
+    -fx-background-color: transparent;
+}
