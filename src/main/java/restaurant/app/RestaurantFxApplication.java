@@ -40,6 +40,8 @@ import restaurant.orders.MealItem;
 import restaurant.orders.Order;
 import restaurant.orders.OrderService;
 import restaurant.orders.OrderStatus;
+import restaurant.reservations.Notification;
+import restaurant.reservations.NotificationService;
 import restaurant.reservations.Reservation;
 import restaurant.reservations.ReservationService;
 import restaurant.structure.Branch;
@@ -68,6 +70,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
     private final OrderService orderService = new OrderService();
     private final KitchenService kitchenService = new KitchenService();
     private final BillingService billingService = new BillingService();
+    private final NotificationService notificationService = new NotificationService();
     private Label statusLabel;
 
     @Override
@@ -80,6 +83,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
         tabPane.getTabs().add(createTablesTab());
         tabPane.getTabs().add(createMenuTab());
         tabPane.getTabs().add(createReservationsTab());
+        tabPane.getTabs().add(createNotificationsTab());
         tabPane.getTabs().add(createOrdersTab());
         tabPane.getTabs().add(createBillingTab());
         tabPane.getTabs().forEach(tab -> tab.setClosable(false));
@@ -136,8 +140,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                     statCard(String.valueOf(menuService.countItems()), "Menu items"),
                     statCard(String.valueOf(reservationService.countTodayReservations()), "Today reservations"),
                     statCard(String.valueOf(orderService.countOpenOrders()), "Open orders"),
-                    statCard(money(billingService.sumPaidToday()), "Paid today")
-            );
+                    statCard(money(billingService.sumPaidToday()), "Paid today"));
         } catch (Exception ex) {
             stats.getChildren().add(statCard("MySQL", "Start XAMPP and import SQL"));
         }
@@ -145,8 +148,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
         VBox flow = card();
         flow.getChildren().addAll(
                 sectionTitle("Simple workflow"),
-                text("Search tables, create reservations, take orders, send them to kitchen, create bills and receive payments.")
-        );
+                text("Search tables, create reservations, take orders, send them to kitchen, create bills and receive payments."));
 
         content.getChildren().addAll(hero, stats, flow);
         return createTab("Dashboard", scroll(content));
@@ -160,7 +162,9 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 : "Database: not connected. Start XAMPP MySQL and import database/restaurant_db.sql");
         Button refresh = button("Refresh", "secondary-button");
         refresh.setOnAction(event -> setStatus("Dashboard refreshed", true));
-        intro.getChildren().addAll(heading, text("This version uses a simpler layout, softer colors and in-window messages instead of pop-up alerts."), connection, refresh);
+        intro.getChildren().addAll(heading, text(
+                "This version uses a simpler layout, softer colors and in-window messages instead of pop-up alerts."),
+                connection, refresh);
         return intro;
     }
 
@@ -176,8 +180,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Table", RestaurantTable::getTableCode),
                 column("Capacity", table -> String.valueOf(table.getCapacity())),
                 column("Status", table -> table.getStatus().name()),
-                column("Location", RestaurantTable::getLocationLabel)
-        );
+                column("Location", RestaurantTable::getLocationLabel));
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         Button showAll = button("Show tables", "secondary-button");
@@ -192,7 +195,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
         search.setOnAction(event -> runSafely(() -> {
             Branch branch = selected(branchCombo, "Choose a branch.");
             LocalDateTime dateTime = readDateTime(datePicker, timeField);
-            List<RestaurantTable> tables = tableService.findAvailableTables(branch.getId(), peopleSpinner.getValue(), dateTime);
+            List<RestaurantTable> tables = tableService.findAvailableTables(branch.getId(), peopleSpinner.getValue(),
+                    dateTime);
             tableView.setItems(FXCollections.observableArrayList(tables));
             setStatus(tables.size() + " available tables found", true);
         }));
@@ -210,7 +214,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
 
         VBox left = sidePanel("Table availability", "/images/tables.jpg", form);
         VBox right = tablePanel("Tables", tableView);
-        HBox content = split(left, right);
+        Region content = split(left, right);
         loadBranches(branchCombo);
         showAll.fire();
         return createTab("Tables", content);
@@ -232,8 +236,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Section", MenuItem::getSectionTitle),
                 column("Item", MenuItem::getName),
                 column("Price", item -> money(item.getPrice())),
-                column("Available", item -> item.isAvailable() ? "Yes" : "No")
-        );
+                column("Available", item -> item.isAvailable() ? "Yes" : "No"));
         menuTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         Runnable refreshMenu = () -> runSafely(() -> {
@@ -255,7 +258,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
         Button add = button("Add item", "primary-button");
         add.setOnAction(event -> runSafely(() -> {
             MenuSection section = selected(sectionCombo, "Choose a section.");
-            int id = menuService.addMenuItem(section.getId(), nameField.getText().trim(), descriptionArea.getText().trim(), readMoney(priceField.getText()));
+            int id = menuService.addMenuItem(section.getId(), nameField.getText().trim(),
+                    descriptionArea.getText().trim(), readMoney(priceField.getText()));
             nameField.clear();
             priceField.clear();
             descriptionArea.clear();
@@ -279,7 +283,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
 
         VBox left = sidePanel("Menu", "/images/menu.jpg", form);
         VBox right = tablePanel("Menu items", menuTable);
-        HBox content = split(left, right);
+        Region content = split(left, right);
         loadBranches(branchCombo);
         refreshMenu.run();
         return createTab("Menu", content);
@@ -309,8 +313,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Table", Reservation::getTableCode),
                 column("People", reservation -> String.valueOf(reservation.getPeopleCount())),
                 column("Time", reservation -> formatDateTime(reservation.getReservationTime())),
-                column("Status", reservation -> reservation.getStatus().name())
-        );
+                column("Status", reservation -> reservation.getStatus().name()));
         reservationTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         Runnable refreshReservations = () -> runSafely(() -> {
@@ -323,7 +326,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
         findTables.setOnAction(event -> runSafely(() -> {
             Branch branch = selected(branchCombo, "Choose a branch.");
             LocalDateTime dateTime = readDateTime(datePicker, timeField);
-            List<RestaurantTable> tables = tableService.findAvailableTables(branch.getId(), peopleSpinner.getValue(), dateTime);
+            List<RestaurantTable> tables = tableService.findAvailableTables(branch.getId(), peopleSpinner.getValue(),
+                    dateTime);
             tableCombo.setItems(FXCollections.observableArrayList(tables));
             if (!tables.isEmpty()) {
                 tableCombo.getSelectionModel().selectFirst();
@@ -335,7 +339,9 @@ public class RestaurantFxApplication extends javafx.application.Application {
         create.setOnAction(event -> runSafely(() -> {
             Branch branch = selected(branchCombo, "Choose a branch.");
             RestaurantTable table = selected(tableCombo, "Find and select a table.");
-            int id = reservationService.createReservation(branch.getId(), table.getId(), nameField.getText().trim(), phoneField.getText().trim(), emailField.getText().trim(), readDateTime(datePicker, timeField), peopleSpinner.getValue(), notesArea.getText().trim());
+            int id = reservationService.createReservation(branch.getId(), table.getId(), nameField.getText().trim(),
+                    phoneField.getText().trim(), emailField.getText().trim(), readDateTime(datePicker, timeField),
+                    peopleSpinner.getValue(), notesArea.getText().trim());
             nameField.clear();
             phoneField.clear();
             emailField.clear();
@@ -384,10 +390,39 @@ public class RestaurantFxApplication extends javafx.application.Application {
 
         VBox left = sidePanel("Reservations", "/images/reservations.jpg", form);
         VBox right = tablePanel("Reservations", reservationTable, new HBox(10, checkIn, cancel));
-        HBox content = split(left, right);
+        Region content = split(left, right);
         loadBranches(branchCombo);
         refreshReservations.run();
         return createTab("Reservations", content);
+    }
+
+    private Tab createNotificationsTab() {
+        TableView<Notification> notificationsTable = new TableView<>();
+        notificationsTable.getColumns().addAll(
+                column("ID", notif -> String.valueOf(notif.getId())),
+                column("Res ID", notif -> String.valueOf(notif.getReservationId())),
+                column("Cust ID", notif -> String.valueOf(notif.getCustomerId())),
+                column("Type", Notification::getType),
+                column("Message", Notification::getMessage),
+                column("Sent", notif -> notif.isSent() ? "Yes" : "No"),
+                column("Date", notif -> formatDateTime(notif.getCreatedAt())));
+        notificationsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
+        Runnable refreshNotifications = () -> runSafely(() -> {
+            List<Notification> notifications = notificationService.findAllNotifications();
+            notificationsTable.setItems(FXCollections.observableArrayList(notifications));
+            setStatus(notifications.size() + " notifications loaded", true);
+        });
+
+        Button refresh = button("Refresh", "secondary-button");
+        refresh.setOnAction(event -> refreshNotifications.run());
+
+        VBox left = sidePanel("Notifications Overview", "/images/reservations.jpg",
+                text("View all system notifications, emails and postal letters sent to customers."));
+        VBox right = tablePanel("Notification Log", notificationsTable, refresh);
+        Region content = split(left, right);
+        refreshNotifications.run();
+        return createTab("Notifications", content);
     }
 
     private Tab createOrdersTab() {
@@ -404,8 +439,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Order", order -> "#" + order.getId()),
                 column("Table", Order::getTableCode),
                 column("Status", order -> order.getStatus().name()),
-                column("Total", order -> money(order.getTotal()))
-        );
+                column("Total", order -> money(order.getTotal())));
         ordersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableView<MealItem> itemsTable = new TableView<>();
@@ -413,8 +447,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Seat", item -> String.valueOf(item.getSeatNumber())),
                 column("Item", MealItem::getItemName),
                 column("Qty", item -> String.valueOf(item.getQuantity())),
-                column("Total", item -> money(item.getLineTotal()))
-        );
+                column("Total", item -> money(item.getLineTotal())));
         itemsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         itemsTable.setPrefHeight(170);
 
@@ -423,8 +456,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Order", ticket -> "#" + ticket.getOrderId()),
                 column("Table", KitchenTicket::getTableCode),
                 column("Status", ticket -> ticket.getStatus().name()),
-                column("Items", KitchenTicket::getItemSummary)
-        );
+                column("Items", KitchenTicket::getItemSummary));
         kitchenTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         Runnable refreshOrders = () -> runSafely(() -> {
@@ -437,7 +469,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
         Runnable loadBranchData = () -> runSafely(() -> {
             Branch branch = selected(branchCombo, "Choose a branch.");
             tableCombo.setItems(FXCollections.observableArrayList(tableService.findTablesByBranch(branch.getId())));
-            itemCombo.setItems(FXCollections.observableArrayList(menuService.findAvailableItemsByBranch(branch.getId())));
+            itemCombo.setItems(
+                    FXCollections.observableArrayList(menuService.findAvailableItemsByBranch(branch.getId())));
             if (!tableCombo.getItems().isEmpty()) {
                 tableCombo.getSelectionModel().selectFirst();
             }
@@ -450,7 +483,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
             if (newValue == null) {
                 itemsTable.getItems().clear();
             } else {
-                runSafely(() -> itemsTable.setItems(FXCollections.observableArrayList(orderService.findItemsByOrder(newValue.getId()))));
+                runSafely(() -> itemsTable
+                        .setItems(FXCollections.observableArrayList(orderService.findItemsByOrder(newValue.getId()))));
             }
         });
 
@@ -506,8 +540,9 @@ public class RestaurantFxApplication extends javafx.application.Application {
         form.add(new HBox(10, addItem, sendToKitchen), 1, 6, 2, 1);
 
         VBox left = sidePanel("Orders", "/images/orders.jpg", form);
-        VBox right = tablePanel("Active orders", ordersTable, sectionTitle("Selected order items"), itemsTable, sectionTitle("Kitchen"), kitchenTable, markReady);
-        HBox content = split(left, right);
+        VBox right = tablePanel("Active orders", ordersTable, sectionTitle("Selected order items"), itemsTable,
+                sectionTitle("Kitchen"), kitchenTable, markReady);
+        Region content = split(left, right);
         loadBranches(branchCombo);
         loadBranchData.run();
         refreshOrders.run();
@@ -520,8 +555,7 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Order", order -> "#" + order.getId()),
                 column("Table", Order::getTableCode),
                 column("Status", order -> order.getStatus().name()),
-                column("Total", order -> money(order.getTotal()))
-        );
+                column("Total", order -> money(order.getTotal())));
         billableOrdersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableView<Bill> billsTable = new TableView<>();
@@ -530,16 +564,14 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 column("Order", bill -> "#" + bill.getOrderId()),
                 column("Table", Bill::getTableCode),
                 column("Total", bill -> money(bill.getTotal())),
-                column("Status", bill -> bill.getPaymentStatus().name())
-        );
+                column("Status", bill -> bill.getPaymentStatus().name()));
         billsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableView<BillItem> billItemsTable = new TableView<>();
         billItemsTable.getColumns().addAll(
                 column("Item", BillItem::getItemName),
                 column("Qty", item -> String.valueOf(item.getQuantity())),
-                column("Total", item -> money(item.getLineTotal()))
-        );
+                column("Total", item -> money(item.getLineTotal())));
         billItemsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         billItemsTable.setPrefHeight(150);
 
@@ -562,7 +594,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
                 billItemsTable.getItems().clear();
             } else {
                 runSafely(() -> {
-                    billItemsTable.setItems(FXCollections.observableArrayList(billingService.findBillItems(newValue.getId())));
+                    billItemsTable.setItems(
+                            FXCollections.observableArrayList(billingService.findBillItems(newValue.getId())));
                     amountField.setText(newValue.getTotal().toPlainString());
                 });
             }
@@ -579,7 +612,8 @@ public class RestaurantFxApplication extends javafx.application.Application {
         Button payBill = button("Pay bill", "success-button");
         payBill.setOnAction(event -> runSafely(() -> {
             Bill bill = selectedRow(billsTable, "Select a bill.");
-            billingService.payBill(bill, selected(methodCombo, "Choose a payment method."), readMoney(amountField.getText()), detailsField.getText().trim());
+            billingService.payBill(bill, selected(methodCombo, "Choose a payment method."),
+                    readMoney(amountField.getText()), detailsField.getText().trim());
             detailsField.clear();
             refreshBilling.run();
             setStatus("Bill #" + bill.getId() + " paid", true);
@@ -595,8 +629,9 @@ public class RestaurantFxApplication extends javafx.application.Application {
         paymentForm.add(payBill, 1, 3);
 
         VBox left = sidePanel("Billing", "/images/billing.jpg", billableOrdersTable, createBill);
-        VBox right = tablePanel("Bills", billsTable, sectionTitle("Bill items"), billItemsTable, sectionTitle("Payment"), paymentForm);
-        HBox content = split(left, right);
+        VBox right = tablePanel("Bills", billsTable, sectionTitle("Bill items"), billItemsTable,
+                sectionTitle("Payment"), paymentForm);
+        Region content = split(left, right);
         refreshBilling.run();
         return createTab("Billing", content);
     }
@@ -608,12 +643,32 @@ public class RestaurantFxApplication extends javafx.application.Application {
         return tab;
     }
 
-    private HBox split(VBox left, VBox right) {
-        HBox content = new HBox(18, left, right);
-        content.setPadding(new Insets(20));
+    // ── KEY FIX ──────────────────────────────────────────────────────────────
+    // Returns a ScrollPane so every tab can scroll vertically.
+    // Removed the hard minHeight constraints that clipped content below the
+    // window boundary even when the window was maximised.
+    // ─────────────────────────────────────────────────────────────────────────
+    private Region split(VBox left, VBox right) {
+        HBox inner = new HBox(18, left, right);
+        inner.setPadding(new Insets(20));
+
+        // Lock the left panel to a fixed width so it never squishes the form
         left.setPrefWidth(390);
+        left.setMinWidth(390);
+        left.setMaxWidth(390);
+
+        // Let the right panel expand to fill whatever space remains
         HBox.setHgrow(right, Priority.ALWAYS);
-        return content;
+
+        // Wrap the whole row in a vertical-only ScrollPane so nothing is ever
+        // hidden off the bottom of the screen
+        ScrollPane scrollPane = new ScrollPane(inner);
+        scrollPane.setFitToWidth(true); // honour horizontal layout; no h-scroll
+        scrollPane.setFitToHeight(false); // allow vertical overflow → v-scroll appears
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.getStyleClass().add("page-scroll");
+        return scrollPane;
     }
 
     private VBox sidePanel(String title, String imagePath, Region form) {

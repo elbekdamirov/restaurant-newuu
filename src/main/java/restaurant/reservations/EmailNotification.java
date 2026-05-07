@@ -1,19 +1,14 @@
 package restaurant.reservations;
 
-public class EmailNotification {
-    private final String email;
-    private final String message;
-
-    public EmailNotification(String email, String message) {
-        this.email = email;
-        this.message = message;
+public class EmailNotification implements NotificationSender {
+    @Override
+    public void send(String destination, String message) {
+        // In a real application, this would integrate with an SMTP server.
+        System.out.println("Sending EMAIL to " + destination + ": " + message);
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getMessage() {
-        return message;
+    @Override
+    public String getType() {
+        return "EMAIL";
     }
 }
