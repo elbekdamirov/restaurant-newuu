@@ -1,19 +1,14 @@
 package restaurant.reservations;
 
-public class PostalNotification {
-    private final String postalAddress;
-    private final String message;
-
-    public PostalNotification(String postalAddress, String message) {
-        this.postalAddress = postalAddress;
-        this.message = message;
+public class PostalNotification implements NotificationSender {
+    @Override
+    public void send(String destination, String message) {
+        // In a real application, this would integrate with a postal service API.
+        System.out.println("Sending POSTAL letter to " + destination + ": " + message);
     }
 
-    public String getPostalAddress() {
-        return postalAddress;
-    }
-
-    public String getMessage() {
-        return message;
+    @Override
+    public String getType() {
+        return "POSTAL";
     }
 }
